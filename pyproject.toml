@@ -8,10 +8,13 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
 dependencies = [
-    "fastapi (>=0.115.12,<0.116.0)",
+    "fastapi[standard] (>=0.115.12,<0.116.0)",
     "sqlalchemy (>=2.0.41,<3.0.0)",
     "pydantic-settings (>=2.9.1,<3.0.0)",
-    "alembic (>=1.15.2,<2.0.0)"
+    "alembic (>=1.15.2,<2.0.0)",
+    "pyjwt (>=2.10.1,<3.0.0)",
+    "pwdlib[argon2] (>=0.2.1,<0.3.0)",
+    "tzdata (>=2025.2,<2026.0)"
 ]
 
 [tool.poetry]
@@ -48,7 +51,7 @@ addopts = '-p no:warnings'
 lint = 'ruff check'
 pre_format = 'ruff check --fix'
 format = 'ruff format'
-run = 'fastapi dev yawara/app.py'
+run = 'fastapi dev src/yawara/app.py'
 pre_test = 'task lint'
 test = 'pytest -s -x --cov=yawara -vv'
 post_test = 'coverage html'
