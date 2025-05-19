@@ -45,6 +45,7 @@ class Funcionario:
       server_default=func.now(),
     )
 
+@table_registry.mapped_as_dataclass
 class Cliente:
     __tablename__ = 'clientes'
 
@@ -64,6 +65,7 @@ class Cliente:
       server_default=func.now(),
     )
 
+@table_registry.mapped_as_dataclass
 class Pet:
     __tablename__ = 'pets'
 
@@ -80,6 +82,7 @@ class Pet:
       server_default=func.now(),
     )
 
+@table_registry.mapped_as_dataclass
 class Servico:
     __tablename__ = 'servicos'
 
