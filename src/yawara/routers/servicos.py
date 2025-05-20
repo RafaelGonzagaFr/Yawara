@@ -69,13 +69,6 @@ def criar_servico(current_user: T_CurrentUser, servico: ServicoBase, session: T_
 
 @router.get('/', status_code=HTTPStatus.OK, response_model=list[ServicoResponse])
 def lista_servicos(session: T_Session):
-    db_servico = db_servico = session.scalars(
-    select(Servico)
-    .options(
-            joinedload(Servico.cliente),
-            joinedload(Servico.funcionario),
-            joinedload(Servico.pet)
-        )
-    ).all()
+    db_servico = db_servico = session.scalars(select(Servico)).all()
     
     return db_servico
