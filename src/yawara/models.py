@@ -1,14 +1,17 @@
 from datetime import datetime
-from typing import List, Optional
-from sqlalchemy import ForeignKey, func
 from enum import Enum
+from typing import List
+
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, registry, relationship
 
 table_registry = registry()
 
+
 class Tipo(str, Enum):
     normal = 'normal'
     adm = 'adm'
+
 
 @table_registry.mapped_as_dataclass
 class Usuario:
@@ -27,12 +30,14 @@ class Usuario:
       server_default=func.now(),
     )
 
+
+##################################################################
 @table_registry.mapped_as_dataclass
 class Funcionario:
     __tablename__ = 'funcionarios'
 
     id: Mapped[int] = mapped_column(ForeignKey('usuarios.id'), init=True, primary_key=True)
-    nome: Mapped[str] 
+    nome: Mapped[str]
     cpf: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(unique=True)
     tipo: Mapped[Tipo]
@@ -52,12 +57,13 @@ class Funcionario:
         init=False
     )
 
+
 @table_registry.mapped_as_dataclass
 class Cliente:
     __tablename__ = 'clientes'
 
     id: Mapped[int] = mapped_column(ForeignKey('usuarios.id'), init=True, primary_key=True)
-    nome: Mapped[str] 
+    nome: Mapped[str]
     cpf: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(unique=True)
     endereco: Mapped[str]
@@ -84,12 +90,13 @@ class Cliente:
         init=False
     )
 
+
 @table_registry.mapped_as_dataclass
 class Pet:
     __tablename__ = 'pets'
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
-    nome: Mapped[str] 
+    nome: Mapped[str]
     dono: Mapped[int] = mapped_column(ForeignKey('clientes.id'))
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
@@ -107,15 +114,17 @@ class Pet:
         init=False
     )
 
+
 @table_registry.mapped_as_dataclass
 class Servico:
     __tablename__ = 'servicos'
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
-    cliente: Mapped[str] = mapped_column(ForeignKey('clientes.id'))
-    funcionario: Mapped[str] = mapped_column(ForeignKey('funcionarios.id'))
-    pet: Mapped[str] = mapped_column(ForeignKey('pets.id'))
+    cliente_id: Mapped[int] = mapped_column(ForeignKey('clientes.id'))
+    funcionario_id: Mapped[int] = mapped_column(ForeignKey('funcionarios.id'))
+    pet_id: Mapped[int] = mapped_column(ForeignKey('pets.id'))
     descricao: Mapped[str]
+
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )

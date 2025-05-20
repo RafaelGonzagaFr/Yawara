@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from yawara.routers import auth, usuarios
+from yawara.routers import auth, pets, servicos, usuarios
 
 app = FastAPI(
   title="Yawara",
@@ -11,3 +11,5 @@ app = FastAPI(
 
 app.include_router(auth.router)
 app.include_router(usuarios.router)
+app.include_router(pets.router)
+app.include_router(servicos.router)
