@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import List, Optional
 from sqlalchemy import ForeignKey, func
 from enum import Enum
-from sqlalchemy.orm import Mapped, mapped_column, registry
+from sqlalchemy.orm import Mapped, mapped_column, registry, relationship
 
 table_registry = registry()
 
@@ -45,6 +46,12 @@ class Funcionario:
       server_default=func.now(),
     )
 
+    # Relacionamento reverso (um-para-um com Usuario)
+    usuario: Mapped["Usuario"] = relationship(
+        lazy="joined",
+        init=False
+    )
+
 @table_registry.mapped_as_dataclass
 class Cliente:
     __tablename__ = 'clientes'
@@ -65,13 +72,25 @@ class Cliente:
       server_default=func.now(),
     )
 
+    # Relacionamento reverso (um-para-um com Usuario)
+    usuario: Mapped["Usuario"] = relationship(
+        lazy="joined",
+        init=False
+    )
+
+     # 🔹 Relacionamento 1:N com Pet
+    pets: Mapped[List["Pet"]] = relationship(
+        back_populates="cliente",
+        init=False
+    )
+
 @table_registry.mapped_as_dataclass
 class Pet:
     __tablename__ = 'pets'
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
     nome: Mapped[str] 
-    dono: Mapped[str] = mapped_column(ForeignKey('clientes.id'))
+    dono: Mapped[int] = mapped_column(ForeignKey('clientes.id'))
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )
@@ -80,6 +99,12 @@ class Pet:
       onupdate=func.now(),
       nullable=True,
       server_default=func.now(),
+    )
+
+    # 🔹 Relacionamento reverso N:1 com Cliente
+    cliente: Mapped["Cliente"] = relationship(
+        back_populates="pets",
+        init=False
     )
 
 @table_registry.mapped_as_dataclass
