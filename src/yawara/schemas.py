@@ -20,7 +20,6 @@ class UsuarioBase(BaseModel):
     class Config:
         orm_mode = True
 
-
 class FuncionarioBase(BaseModel):
     id: int
     nome: str
@@ -43,6 +42,7 @@ class PetBase(BaseModel):
     nome: str
     class Config:
         orm_mode = True
+
 
 
 class ServicoBase(BaseModel):
@@ -76,7 +76,6 @@ class ClienteBase(BaseModel):
     email: str
     telefone: str
     usuario: UsuarioBase  # Aqui acessamos apenas o login
-
 
 class ClienteBaseComPets(BaseModel):
     id: int
@@ -136,3 +135,22 @@ class UsuarioClientePublic(BaseModel):
     email: EmailStr
     pets: List[PetBase]
     model_config = ConfigDict(from_attributes=True)
+
+
+class DonoBase(BaseModel):
+    id: int
+    nome: str
+
+    class Config:
+        orm_mode = True
+
+class PetComDonoResponse(BaseModel):
+    id: int
+    nome: str
+    cliente: DonoBase  # Aqui entra o objeto dono, com nome, etc.
+
+    class Config:
+        orm_mode = True
+
+class PetListComDono(BaseModel):
+    pets: List[PetComDonoResponse]

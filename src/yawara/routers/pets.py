@@ -6,10 +6,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from pytest import Session
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from yawara.database import get_session
 from yawara.models import Funcionario, Pet, Usuario
-from yawara.schemas import PetList, PetResponse, PetSchema
+from yawara.schemas import PetList, PetListComDono, PetResponse, PetSchema
 from yawara.security import get_current_user
 
 router = APIRouter(prefix='/pets', tags=['pets'])
@@ -55,7 +56,9 @@ def criar_novo_pet(pet: PetSchema, session: T_Session):
     return db_pet
 
 
-@router.get('/', status_code=HTTPStatus.OK, response_model=PetList)
+@router.get('/', status_code=HTTPStatus.OK, response_model=PetListComDono)
 def listar_pets(session: T_Session):
-    db_pets = session.scalars(select(Pet)).all()
+    db_pets = session.scalars(
+        select(Pet).join(Pet.cliente).options(selectinload(Pet.cliente))
+    ).all()
     return {'pets': db_pets}
