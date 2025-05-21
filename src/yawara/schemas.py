@@ -61,6 +61,17 @@ class ServicoResponse(BaseModel):
     class Config:
         orm_mode = True
 
+class ServicoResponseGet(BaseModel):
+    id: int
+    cliente_nome: str
+    funcionario_nome: str
+    pet_nome: str
+    descricao: str
+    status: Status
+
+    class Config:
+        orm_mode = True
+
 
 class PetResponse(PetSchema):
     id: int

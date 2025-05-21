@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from yawara.database import get_session
 from yawara.models import Cliente, Funcionario, Usuario
@@ -83,7 +83,7 @@ def criar_usuario_cliente(usuario: UsuarioClienteSchema, session: T_Session):
 
     db_user = Usuario(
         login=usuario.login,
-        senha=usuario.senha
+        senha=hashed_password
     )
 
     session.add(db_user)
@@ -105,11 +105,26 @@ def criar_usuario_cliente(usuario: UsuarioClienteSchema, session: T_Session):
     return db_cliente
 
 
-@router.get('/funcionario', status_code=HTTPStatus.OK, response_model=dict[str, list[FuncionarioBase]])
+@router.get('/funcionario', status_code=HTTPStatus.OK)
 def listar_usuarios_funcionario(session: T_Session):
-        """Retorna todos os funcionários com seus respectivos logins"""
-        usuarios = session.scalars(select(Funcionario)).all()
-        return {'Funcionarios': usuarios}
+    """Retorna todos os funcionários com seus respectivos logins"""
+    funcionarios = session.scalars(
+        select(Funcionario).options(joinedload(Funcionario.usuario))
+    ).all()
+
+    # Montar a resposta manualmente para incluir login do usuário
+    resultado = []
+    for f in funcionarios:
+        resultado.append({
+            "id": f.id,
+            "nome": f.nome,
+            "email": f.email,
+            "cpf": f.cpf,
+            "tipo": f.tipo,
+            "login": f.usuario.login if f.usuario else None
+        })
+
+    return {"Funcionarios": resultado}
 
 
 @router.get('/cliente', status_code=HTTPStatus.OK, response_model=dict[str, list[ClienteBaseComPets]])

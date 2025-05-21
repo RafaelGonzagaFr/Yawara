@@ -138,3 +138,7 @@ class Servico:
       nullable=True,
       server_default=func.now(),
     )
+
+    cliente: Mapped["Cliente"] = relationship(init=False)
+    funcionario: Mapped["Funcionario"] = relationship(init=False)
+    pet: Mapped["Pet"] = relationship(init=False)

@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 
 from yawara.database import get_session
 from yawara.models import Cliente, Funcionario, Pet, Servico, Usuario
-from yawara.schemas import ServicoBase, ServicoResponse
+from yawara.schemas import ServicoBase, ServicoResponse, ServicoResponseGet
 from yawara.security import get_current_user
 
 router = APIRouter(prefix='/servicos', tags=['servicos'])
@@ -68,11 +68,32 @@ def criar_servico(current_user: T_CurrentUser, servico: ServicoBase, session: T_
         detail='Usuário não autorizado'
     )
 
-@router.get('/', status_code=HTTPStatus.OK, response_model=list[ServicoResponse])
+@router.get('/', status_code=HTTPStatus.OK, response_model=list[ServicoResponseGet])
 def lista_servicos(session: T_Session):
-    db_servico = db_servico = session.scalars(select(Servico)).all()
-    
-    return db_servico
+    servicos = session.scalars(
+        select(Servico)
+        .options(
+            joinedload(Servico.cliente),
+            joinedload(Servico.funcionario),
+            joinedload(Servico.pet)
+        )
+    ).all()
+
+    resposta = [
+        ServicoResponseGet(
+            id=s.id,
+            cliente_nome=s.cliente.nome,
+            funcionario_nome=s.funcionario.nome,
+            pet_nome=s.pet.nome,
+            descricao=s.descricao,
+            status=s.status,
+            created_at=s.created_at,
+            updated_at=s.updated_at
+        )
+        for s in servicos
+    ]
+
+    return resposta
 
 @router.patch('/status/{servico_id}', status_code=HTTPStatus.OK, response_model=ServicoResponse)
 def alterar_status_servico(servico_id: int, session: T_Session):
