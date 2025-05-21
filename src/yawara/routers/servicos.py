@@ -53,7 +53,8 @@ def criar_servico(current_user: T_CurrentUser, servico: ServicoBase, session: T_
             cliente_id=servico.cliente_id,
             pet_id=servico.pet_id,
             funcionario_id=current_user.id,
-            descricao=servico.descricao
+            descricao=servico.descricao,
+            status="pendente"
         )
 
         session.add(db_servico)

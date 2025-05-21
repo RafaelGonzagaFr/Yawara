@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
-from yawara.models import Tipo
+from yawara.models import Status, Tipo
 
 
 class Token(BaseModel):
@@ -56,6 +56,7 @@ class ServicoResponse(BaseModel):
     cliente_id: int
     funcionario_id: int
     pet_id: int
+    status: Status
 
     class Config:
         orm_mode = True

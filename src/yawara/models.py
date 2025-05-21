@@ -12,6 +12,9 @@ class Tipo(str, Enum):
     normal = 'normal'
     adm = 'adm'
 
+class Status(str, Enum):
+    pendente = 'pendente'
+    concluido = 'concluido'
 
 @table_registry.mapped_as_dataclass
 class Usuario:
@@ -124,6 +127,7 @@ class Servico:
     funcionario_id: Mapped[int] = mapped_column(ForeignKey('funcionarios.id'))
     pet_id: Mapped[int] = mapped_column(ForeignKey('pets.id'))
     descricao: Mapped[str]
+    status: Mapped[Status]
 
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
