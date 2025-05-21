@@ -73,3 +73,31 @@ def lista_servicos(session: T_Session):
     db_servico = db_servico = session.scalars(select(Servico)).all()
     
     return db_servico
+
+@router.patch('/status/{servico_id}', status_code=HTTPStatus.OK, response_model=ServicoResponse)
+def alterar_status_servico(servico_id: int, session: T_Session):
+    """Mudar status do servico"""
+    servico = session.scalar(
+        select(Servico).where(
+            Servico.id == servico_id
+        )
+    )
+
+    if not servico:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Serviço não encontrado'
+        )
+    
+    if servico.status == 'pendente':
+        servico.status = 'concluido'
+    else:
+        servico.status='pendente'
+        
+
+    session.commit()
+    session.refresh(servico)
+
+    return servico
+
+
