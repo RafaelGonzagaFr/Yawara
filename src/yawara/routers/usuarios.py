@@ -106,14 +106,46 @@ def criar_usuario_cliente(usuario: UsuarioClienteSchema, session: T_Session):
 
 
 @router.get('/funcionario', status_code=HTTPStatus.OK, response_model=dict[str, list[FuncionarioBase]])
-def listar_usuario_funcionario(session: T_Session):
+def listar_usuarios_funcionario(session: T_Session):
         """Retorna todos os funcionários com seus respectivos logins"""
         usuarios = session.scalars(select(Funcionario)).all()
         return {'Funcionarios': usuarios}
 
 
 @router.get('/cliente', status_code=HTTPStatus.OK, response_model=dict[str, list[ClienteBaseComPets]])
-def listar_usuario_cliente(session: T_Session):
-        """Retorna todos os cliente com seus respectivos logins e lista de pets cadastrados"""
+def listar_usuarios_cliente(session: T_Session):
+        """Retorna todos os clientes com seus respectivos logins e lista de pets cadastrados"""
         usuarios = session.scalars(select(Cliente)).all()
         return {'Clientes': usuarios}
+
+@router.get('/funcionario/{funcionario_id}', status_code=HTTPStatus.OK, response_model=FuncionarioBase)
+def listar_usuario_funcionario(funcionario_id: int, session: T_Session):
+     funcionario = session.scalar(
+          select(Funcionario).where(
+               Funcionario.id == funcionario_id
+          )
+     )
+
+     if not funcionario:
+          raise HTTPException(
+               status_code=HTTPStatus.BAD_REQUEST,
+               detail='Funcionario não encontrado'
+          )
+     
+     return funcionario
+
+@router.get('/cliente/{cliente_id}', status_code=HTTPStatus.OK, response_model=ClienteBaseComPets)
+def listar_usuario_cliente(cliente_id: int, session: T_Session):
+        cliente = session.scalar(
+            select(Cliente).where(
+                Cliente.id == cliente_id
+            )
+        )
+
+        if not cliente:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Cliente não encontrado'
+            )
+
+        return cliente
