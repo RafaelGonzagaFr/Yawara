@@ -164,3 +164,5 @@ def listar_usuario_cliente(cliente_id: int, session: T_Session):
             )
 
         return cliente
+
+
