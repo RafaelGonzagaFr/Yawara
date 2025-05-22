@@ -60,6 +60,11 @@ class Funcionario:
         init=False
     )
 
+    servicos: Mapped["Servico"] = relationship(
+        back_populates="funcionario",
+        init=False
+    )
+
 
 @table_registry.mapped_as_dataclass
 class Cliente:
@@ -93,6 +98,12 @@ class Cliente:
         init=False
     )
 
+    servicos: Mapped["Servico"] = relationship(
+        back_populates="cliente",
+        init=False
+    )
+
+
 
 @table_registry.mapped_as_dataclass
 class Pet:
@@ -117,6 +128,10 @@ class Pet:
         init=False
     )
 
+    servicos: Mapped["Servico"] = relationship(
+        back_populates="pet",
+        init=False
+    )
 
 @table_registry.mapped_as_dataclass
 class Servico:

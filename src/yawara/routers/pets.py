@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from yawara.database import get_session
 from yawara.models import Funcionario, Pet, Usuario
-from yawara.schemas import PetComDonoResponse, PetList, PetListComDono, PetResponse, PetSchema
+from yawara.schemas import Message, PetComDonoResponse, PetList, PetListComDono, PetResponse, PetSchema
 from yawara.security import get_current_user
 
 router = APIRouter(prefix='/pets', tags=['pets'])
@@ -76,3 +76,41 @@ def listar_pet(pet_id:int, session: T_Session):
                detail='Pet não encontrado'
           )
      return pet
+
+@router.delete('/{pet_id}', status_code=HTTPStatus.OK, response_model=Message)
+def deletar_pet(pet_id: int, session: T_Session, current_user: T_CurrentUser):
+    funcionario_atual = session.scalar(
+        select(Funcionario).where(
+            Funcionario.id == current_user.id
+        )
+    )
+
+    if funcionario_atual.tipo != 'adm':
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Não autorizado'
+        )
+
+    pet = session.scalar(
+        select(Pet).where(
+            Pet.id == pet_id
+        )
+    )
+
+    if not pet:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Serviço não existe'
+        )
+
+    if pet.servicos:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Existem servicos relacionado a esse pet'
+        )
+
+
+    session.delete(pet)
+    session.commit()
+
+    return {'message': 'Pet deletado'}

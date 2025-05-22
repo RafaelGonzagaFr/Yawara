@@ -232,6 +232,12 @@ def deletar_funcionario(funcionario_id: int, session: T_Session, current_user: T
         )
     )
 
+    if funcionario.servicos:
+         raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Existem servicos relacionados com esse funcionário'
+        )
+
     if not funcionario:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
@@ -243,6 +249,7 @@ def deletar_funcionario(funcionario_id: int, session: T_Session, current_user: T
             Usuario.id == funcionario.id
         )
     )
+
 
     session.delete(usuario_funcionario)
     session.delete(funcionario)
