@@ -195,7 +195,7 @@ def deletar_cliente(cliente_id: int, session: T_Session, current_user: T_Current
     
     if cliente.pets:
             raise HTTPException(
-            status_code=HTTPStatus.NON_AUTHORITATIVE_INFORMATION,
+            status_code=HTTPStatus.BAD_REQUEST,
             detail='Esse cliente não pode ser excluido pois ele tem pets'
         )
     
