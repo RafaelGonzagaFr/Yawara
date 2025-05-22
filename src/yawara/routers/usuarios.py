@@ -12,6 +12,7 @@ from yawara.schemas import (
     ClienteBase,
     ClienteBaseComPets,
     FuncionarioBase,
+    Message,
     UsuarioClienteSchema,
     UsuarioFuncionarioSchema,
 )
@@ -164,5 +165,92 @@ def listar_usuario_cliente(cliente_id: int, session: T_Session):
             )
 
         return cliente
+
+@router.delete('/cliente/{cliente_id}', status_code=HTTPStatus.OK, response_model=Message)
+def deletar_cliente(cliente_id: int, session: T_Session, current_user: T_CurrentUser):
+    funcionario_atual = session.scalar(
+        select(Funcionario).where(
+            Funcionario.id == current_user.id
+        )
+    )
+    
+    if funcionario_atual.tipo != 'adm':
+        raise HTTPException(
+            status_code=HTTPStatus.NON_AUTHORITATIVE_INFORMATION,
+            detail='Não autorizado'
+        )
+    
+    cliente = session.scalar(
+        select(Cliente).where(
+            Cliente.id == cliente_id
+        )
+    )
+
+    if not cliente:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Cliente não encontrado'
+        )
+
+    
+    if cliente.pets:
+            raise HTTPException(
+            status_code=HTTPStatus.NON_AUTHORITATIVE_INFORMATION,
+            detail='Esse cliente não pode ser excluido pois ele tem pets'
+        )
+    
+
+    usuario_cliente = session.scalar(
+        select(Usuario).where(
+            Usuario.id == cliente.id
+        )
+    )
+
+    session.delete(usuario_cliente)
+    session.delete(cliente)
+    session.commit()
+
+    return {'message': 'Usuario deletado'}
+
+@router.delete('/funcionario/{funcionario_id}', status_code=HTTPStatus.OK, response_model=Message)
+def deletar_funcionario(funcionario_id: int, session: T_Session, current_user: T_CurrentUser):
+    funcionario_atual = session.scalar(
+         select(Funcionario).where(
+              Funcionario.id == current_user.id
+         )
+    )
+
+    if funcionario_atual.tipo != 'adm':
+         raise HTTPException(
+            status_code=HTTPStatus.NON_AUTHORITATIVE_INFORMATION,
+            detail='Não autorizado'
+        )
+    
+    funcionario = session.scalar(
+        select(Funcionario).where(
+            Funcionario.id == funcionario_id
+        )
+    )
+
+    if not funcionario:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Cliente não encontrado'
+        )
+    
+    usuario_funcionario = session.scalar(
+        select(Usuario).where(
+            Usuario.id == funcionario.id
+        )
+    )
+
+    session.delete(usuario_funcionario)
+    session.delete(funcionario)
+    session.commit()
+
+    return {'message': 'Usuario deletado'}
+
+     
+
 
 
