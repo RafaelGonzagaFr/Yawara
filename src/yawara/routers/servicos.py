@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 
 from yawara.database import get_session
 from yawara.models import Cliente, Funcionario, Pet, Servico, Usuario
-from yawara.schemas import ServicoBase, ServicoResponse, ServicoResponseGet
+from yawara.schemas import Message, ServicoBase, ServicoResponse, ServicoResponseGet
 from yawara.security import get_current_user
 
 router = APIRouter(prefix='/servicos', tags=['servicos'])
@@ -121,4 +121,33 @@ def alterar_status_servico(servico_id: int, session: T_Session):
 
     return servico
 
+@router.delete('/{servico_id}', status_code=HTTPStatus.OK, response_model=Message)
+def deletar_servico(servico_id: int, session: T_Session, current_user: T_CurrentUser):
+    funcionario_atual = session.scalar(
+        select(Funcionario).where(
+            Funcionario.id == current_user.id
+        )
+    )
 
+    if funcionario_atual.tipo != 'adm':
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Não autorizado'
+        )
+
+    servico = session.scalar(
+        select(Servico).where(
+            Servico.id == servico_id
+        )
+    )
+
+    if not servico:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Serviço não existe'
+        )
+    
+    session.delete(servico)
+    session.commit()
+
+    return {'message': 'Serviço deletado'}
