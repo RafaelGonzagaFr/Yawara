@@ -114,3 +114,14 @@ def deletar_pet(pet_id: int, session: T_Session, current_user: T_CurrentUser):
     session.commit()
 
     return {'message': 'Pet deletado'}
+
+
+@router.get('/cliente', status_code=HTTPStatus.OK, response_model=PetListComDono)
+def listar_pets_por_cliente(session: T_Session, current_user: T_CurrentUser):
+    """Listar todos os pets"""
+    db_pets = session.scalars(
+        select(Pet).where(
+            Pet.dono == current_user.id
+        ).join(Pet.cliente).options(selectinload(Pet.cliente))
+    ).all()
+    return {'pets': db_pets}
