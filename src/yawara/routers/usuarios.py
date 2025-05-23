@@ -134,6 +134,25 @@ def listar_usuarios_cliente(session: T_Session):
         usuarios = session.scalars(select(Cliente)).all()
         return {'Clientes': usuarios}
 
+@router.get('/me', status_code=HTTPStatus.OK)
+def retornar_usuario_atual(session: T_Session, current_user: T_CurrentUser):
+     return current_user
+
+@router.get('/userType', status_code=HTTPStatus.OK)
+def retornar_tipo_de_usario(session: T_Session, current_user: T_CurrentUser):
+    isCliente = session.scalar(
+         select(Cliente).where(
+              Cliente.id == current_user.id
+         )
+    )
+
+    if isCliente:
+        return {"tipo": "cliente"}
+
+    else:
+        return {"tipo": "adm"}
+
+
 @router.get('/funcionario/{funcionario_id}', status_code=HTTPStatus.OK, response_model=FuncionarioBase)
 def listar_usuario_funcionario(funcionario_id: int, session: T_Session):
      funcionario = session.scalar(
