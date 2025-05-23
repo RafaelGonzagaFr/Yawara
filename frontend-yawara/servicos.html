@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Serviços</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">Sistema de Gestão</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="funcionarios.html">Funcionários</a></li>
+          <li class="nav-item"><a class="nav-link" href="clientes.html">Clientes</a></li>
+          <li class="nav-item"><a class="nav-link" href="pets.html">Pets</a></li>
+          <li class="nav-item"><a class="nav-link active" href="servicos.html">Serviços</a></li>
+        </ul>
+        <button class="btn btn-outline-light" onclick="logout()">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Conteúdo -->
+  <div class="container mt-5">
+    <h2>Serviços</h2>
+
+    <!-- Tabela de Serviços -->
+    <table class="table table-striped mt-4" id="tabela-servicos">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Pet</th>
+          <th>Funcionário</th>
+          <th>Descrição</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <hr>
+
+    <!-- Formulário de criação -->
+    <h4>Cadastrar Novo Serviço</h4>
+    <form id="form-servico">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label for="cliente_id">ID do Cliente</label>
+          <input type="number" class="form-control" id="cliente_id" required />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="pet_id">ID do Pet</label>
+          <input type="number" class="form-control" id="pet_id" required />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="descricao">Descrição</label>
+          <input type="text" class="form-control" id="descricao" required />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-success">Cadastrar</button>
+    </form>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    if (!token) window.location.href = 'login.html';
+
+    const tabela = document.querySelector('#tabela-servicos tbody');
+    const form = document.getElementById('form-servico');
+
+    async function carregarServicos() {
+      const resp = await fetch(`${API_URL}/servicos`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!resp.ok) {
+        alert("Erro ao carregar serviços.");
+        return;
+      }
+
+      const servicos = await resp.json();
+
+      tabela.innerHTML = '';
+      servicos.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${s.id}</td>
+          <td>${s.cliente_nome}</td>
+          <td>${s.pet_nome}</td>
+          <td>${s.funcionario_nome}</td>
+          <td>${s.descricao}</td>
+          <td>${s.status}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deletarStatus(${s.id})">Excluir</button>
+            <button class="btn btn-sm btn-primary" onclick="alterarStatus(${s.id})">Alterar Status</button>
+          </td>
+        `;
+        tabela.appendChild(tr);
+      });
+    }
+
+    async function deletarStatus(id) {
+      const resp = await fetch(`${API_URL}/servicos/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!resp.ok) {
+        const erro = await resp.json();
+        alert(`Erro: ${erro.detail}`);
+        return;
+      }
+
+      carregarServicos();
+    }
+
+    async function alterarStatus(id) {
+      const resp = await fetch(`${API_URL}/servicos/status/${id}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!resp.ok) {
+        const erro = await resp.json();
+        alert(`Erro: ${erro.detail}`);
+        return;
+      }
+
+      carregarServicos();
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const body = {
+        cliente_id: parseInt(document.getElementById('cliente_id').value),
+        pet_id: parseInt(document.getElementById('pet_id').value),
+        descricao: document.getElementById('descricao').value
+      };
+
+      const resp = await fetch(`${API_URL}/servicos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        const erro = await resp.json();
+        alert(`Erro: ${erro.detail}`);
+        return;
+      }
+
+      form.reset();
+      carregarServicos();
+    });
+
+    function logout() {
+      localStorage.removeItem('access_token');
+      window.location.href = 'login.html';
+    }
+
+    carregarServicos();
+  </script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Funcionários</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">Sistema de Gestão</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link active" href="funcionarios.html">Funcionários</a></li>
+          <li class="nav-item"><a class="nav-link" href="clientes.html">Clientes</a></li>
+          <li class="nav-item"><a class="nav-link" href="pets.html">Pets</a></li>
+          <li class="nav-item"><a class="nav-link" href="servicos.html">Serviços</a></li>
+        </ul>
+        <button class="btn btn-outline-light" onclick="logout()">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  
+
+  <!-- Conteúdo principal -->
+  <div class="container mt-5">
+    <h2>Funcionários</h2>
+
+    <div id="mensagem-erro" class="alert alert-danger mt-3" style="display: none;"></div>
+
+    <!-- Lista de funcionários -->
+    <table class="table table-striped mt-4" id="tabela-funcionarios">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Login</th>
+          <th>Tipo</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Preenchido via JavaScript -->
+      </tbody>
+    </table>
+
+    <hr>
+
+    <!-- Formulário para cadastrar novo funcionário -->
+    <h4>Cadastrar novo funcionário</h4>
+    <form id="form-funcionario">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label for="nome" class="form-label">Nome</label>
+          <input type="text" class="form-control" id="nome" required />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" required />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="cpf" class="form-label">CPF</label>
+          <input type="text" class="form-control" id="cpf" required />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="tipo" class="form-label">Tipo</label>
+          <select class="form-select" id="tipo" required>
+            <option value="">Selecione o tipo</option>
+            <option value="adm">Administrador</option>
+            <option value="normal">Normal</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="login" class="form-label">Login</label>
+          <input type="text" class="form-control" id="login" required />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="senha" class="form-label">Senha</label>
+          <input type="password" class="form-control" id="senha" required />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-success">Cadastrar</button>
+    </form>
+
+    <div id="mensagem-erro" class="text-danger mt-3" style="display:none;"></div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    if (!token) window.location.href = 'login.html';
+
+    const tabela = document.querySelector('#tabela-funcionarios tbody');
+    const form = document.getElementById('form-funcionario');
+    const msgErro = document.getElementById('mensagem-erro');
+
+    async function carregarFuncionarios() {
+      const resp = await fetch(`${API_URL}/usuarios/funcionario`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!resp.ok) {
+        tabela.innerHTML = '<tr><td colspan="5">Erro ao carregar funcionários</td></tr>';
+        return;
+      }
+
+      const json = await resp.json();
+      const funcionarios = json.Funcionarios || [];
+
+      tabela.innerHTML = '';
+      funcionarios.forEach(func => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${func.nome}</td>
+          <td>${func.email}</td>
+          <td>${func.login}</td>
+          <td>${func.tipo}</td>
+          <td>
+            <button class="btn btn-warning btn-sm" disabled>Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="deletarFuncionario(${func.id})">Excluir</button>
+          </td>
+        `;
+        tabela.appendChild(tr);
+      });
+    }
+
+    async function deletarFuncionario(id) {
+      if (!confirm('Tem certeza que deseja excluir?')) return;
+
+      msgErro.style.display = 'none';
+      msgErro.textContent = '';
+
+      try {
+        const resp = await fetch(`${API_URL}/usuarios/funcionario/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!resp.ok) {
+          const erroData = await resp.json();
+          const mensagem = erroData.detail || 'Erro desconhecido ao excluir funcionário.';
+          msgErro.textContent = `Erro ao excluir funcionário: ${mensagem}`;
+          msgErro.style.display = 'block';
+          return;
+        }
+
+        carregarFuncionarios();
+      } catch (error) {
+        msgErro.textContent = 'Erro ao excluir funcionário: ' + error.message;
+        msgErro.style.display = 'block';
+      }
+    }
+
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msgErro.style.display = 'none';
+      msgErro.textContent = '';
+
+      const novoFuncionario = {
+        nome: document.getElementById('nome').value,
+        email: document.getElementById('email').value.trim(),
+        cpf: document.getElementById('cpf').value.trim(),
+        tipo: document.getElementById('tipo').value,
+        login: document.getElementById('login').value.trim(),
+        senha: document.getElementById('senha').value
+      };
+
+      console.log(JSON.stringify(novoFuncionario))
+
+      try {
+        const resp = await fetch(`${API_URL}/usuarios/funcionario`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(novoFuncionario)
+        });
+
+        if (!resp.ok) {
+          const erroData = await resp.json();
+          let msg = erroData.detail || 'Erro desconhecido ao cadastrar funcionário.';
+          msgErro.textContent = `Erro ao cadastrar funcionário: ${msg}`;
+          msgErro.style.display = 'block';
+          return;
+        }
+
+        form.reset();
+        carregarFuncionarios();
+      } catch (error) {
+        msgErro.textContent = 'Erro ao cadastrar funcionário: ' + error.message;
+        msgErro.style.display = 'block';
+      }
+    });
+
+    carregarFuncionarios();
+
+    function logout() {
+      localStorage.removeItem('access_token');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+
+</html>
