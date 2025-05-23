@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 
 from yawara.database import get_session
 from yawara.models import Cliente, Funcionario, Pet, Servico, Usuario
-from yawara.schemas import Message, ServicoBase, ServicoResponse, ServicoResponseGet
+from yawara.schemas import Message, ServicoBase, ServicoResponse, ServicoResponseGet, ServicoResponseParaCliente
 from yawara.security import get_current_user
 
 router = APIRouter(prefix='/servicos', tags=['servicos'])
@@ -151,3 +151,22 @@ def deletar_servico(servico_id: int, session: T_Session, current_user: T_Current
     session.commit()
 
     return {'message': 'Serviço deletado'}
+
+@router.get('/cliente', status_code=HTTPStatus.OK, response_model=list[ServicoResponseParaCliente])
+def retornar_servico_por_cliente(session: T_Session, current_user: T_CurrentUser):
+    servicos = session.scalars(
+        select(Servico).where(
+            Servico.cliente_id == current_user.id
+        )
+    ).all()
+
+    return [
+        ServicoResponseParaCliente(
+            funcionario_nome=servico.funcionario.nome,
+            pet_nome=servico.pet.nome,
+            descricao=servico.descricao,
+            status=servico.status
+        )
+        for servico in servicos
+    ]
+        
